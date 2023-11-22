@@ -59,6 +59,9 @@ namespace ProtoPresentation.Entities
                 case ChangeStateRequest changeRequest:
                     await ChangeStateHandler(changeRequest);
                     break;
+                case ChangePointerCoordinatesRequest request:
+                    await ChangePointerCoordinatesHandler(request);
+                    break;
             }
         }
 
@@ -97,6 +100,17 @@ namespace ProtoPresentation.Entities
 
 
         public async Task ChangeStateHandler(ChangeStateRequest request)
+        {
+            var response = await Cluster
+                .RequestAsync<OkResponse>(
+                    kind: Presentation.Kind,
+                    identity: request.PresentationId,
+                    message: request,
+                    ct: CancellationToken.None
+                );
+        }
+
+        public async Task ChangePointerCoordinatesHandler(ChangePointerCoordinatesRequest request)
         {
             var response = await Cluster
                 .RequestAsync<OkResponse>(

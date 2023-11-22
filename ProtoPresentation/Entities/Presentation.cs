@@ -22,6 +22,7 @@ namespace ProtoPresentation.Entities
         private string PresentationName = null!;
         public Dictionary<string,string> Participants = new Dictionary<string,string>();
         public string State = string.Empty;
+        public double MouseX = 0, MouseY = 0;
         public string CreatorId =string.Empty;
         public string CurrentPresenterId = string.Empty;
 
@@ -50,6 +51,9 @@ namespace ProtoPresentation.Entities
                     break;
                 case GetStateRequest request:
                     await GetState(request);
+                    break;
+                case ChangePointerCoordinatesRequest request:
+                    await ChangePointerCoordinates(request);
                     break;
 
             }
@@ -139,22 +143,52 @@ namespace ProtoPresentation.Entities
             }
         }
 
+        private async Task ChangePointerCoordinates(ChangePointerCoordinatesRequest request)
+        {
+            if (isCreated)
+            {
+                if (CurrentPresenterId == request.ParticipantId)
+                {
+                    MouseX = request.MouseX;
+                    MouseY = request.MouseY;
+                    Context.Respond(new OkResponse());
+
+                    var coordinates = new Dictionary<string, double>
+                    {
+                        ["MouseX"] = MouseX,
+                        ["MouseY"] = MouseY
+                    };
+
+                    foreach (var participant in Participants.Keys)
+                    {
+
+
+                        // Send the state to the participant
+                        await _eventsHubContext.Clients.Client(participant).SendAsync("SendMessage", coordinates);
+                    }
+
+                }
+                else
+                {
+                    Context.Respond(new OkResponse("sen kimsen"));
+                }
+            }
+            else
+            {
+                Context.Respond(new OkResponse("wrong req"));
+
+            }
+        }
+
+
+
+
         private async Task GetState(GetStateRequest request)
         {
             if (isCreated)
             {
                
                 Context.Respond(new GetStateResponse(new StateResponse(Participants,CurrentPresenterId,State)));
-
-            }
-        }
-
-        private async Task GetPresentationState(GetPresentationStateRequest request)
-        {
-            if (isCreated)
-            {
-
-                await _eventsHubContext.Clients.Client(request.ParticipantId).SendAsync("SendMessage", State);
 
             }
         }

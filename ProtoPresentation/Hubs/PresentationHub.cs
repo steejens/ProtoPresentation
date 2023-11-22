@@ -64,5 +64,14 @@ namespace ProtoPresentation.Hubs
             }
         }
 
+        public void ChangePointerCoordinates(string prId, double mouseX, double mouseY)
+        {
+            if (ConnectionPID != null)
+            {
+                _actorSystem.Root.Send(ConnectionPID,
+                    new ChangePointerCoordinatesRequest(PresentationId:prId, ParticipantId: Context.ConnectionId, mouseX, mouseY));
+            }
+        }
+
     }
 }
